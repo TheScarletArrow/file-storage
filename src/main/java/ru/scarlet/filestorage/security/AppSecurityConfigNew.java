@@ -2,7 +2,7 @@
  * Copyright (c) 2022. Program made by Anton Yurkov.
  */
 
-package ru.scarlet.filestorage;
+package ru.scarlet.filestorage.security;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,8 +22,7 @@ import ru.scarlet.filestorage.filter.JwtConfig;
 import ru.scarlet.filestorage.filter.filter.CustomAuthenticationFilter;
 import ru.scarlet.filestorage.filter.filter.CustomAuthorizationFilter;
 
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
+
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
