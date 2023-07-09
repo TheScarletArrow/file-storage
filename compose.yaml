@@ -1,0 +1,26 @@
+services:
+  mariadb:
+    image: mariadb:latest
+    ports:
+      - '3306:3306'
+    volumes:
+      - 'mariadb_data:/bitnami/mariadb'
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+      - MARIADB_DATABASE=db
+    healthcheck:
+      test: [ 'CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh' ]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+  adminer:
+    image: adminer
+    ports:
+      - 8084:8080
+volumes:
+  mariadb_data:
+    driver: local
