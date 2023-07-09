@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +23,8 @@ import ru.scarlet.filestorage.filter.JwtConfig;
 import ru.scarlet.filestorage.filter.CustomAuthenticationFilter;
 import ru.scarlet.filestorage.filter.CustomAuthorizationFilter;
 
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 
 
 @EnableWebSecurity
@@ -45,10 +48,10 @@ public class AppSecurityConfigNew {
 
     private final JwtConfig jwtConfig;
 
+    private final RedisTemplate<String, String> redisTemplate;
 
 
-
-//    private final JWTService jwtService;
+    //    private final JWTService jwtService;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -56,31 +59,26 @@ public class AppSecurityConfigNew {
         builder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
         var authenticationManager = builder.build();
 
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager, jwtConfig);
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager, jwtConfig, redisTemplate);
 
         http.csrf(AbstractHttpConfigurer::disable);
 
-        http.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
-        http.authorizeHttpRequests(request->request.requestMatchers(("/login/**")).permitAll());
-        http.authorizeHttpRequests(request->request.requestMatchers(( "/api/token/refresh")).permitAll());
-        http.authorizeHttpRequests(request->request.requestMatchers("/users/").permitAll());
-        http.authorizeHttpRequests(request->request.requestMatchers("/users/void1/").permitAll());
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
+        http.authorizeHttpRequests(request -> request.requestMatchers(("/login/**")).permitAll());
+        http.authorizeHttpRequests(request -> request.requestMatchers(("/api/token/refresh")).permitAll());
+        http.authorizeHttpRequests(request -> request.requestMatchers("/users/").permitAll());
+        http.authorizeHttpRequests(request -> request.requestMatchers("/users/void1/").permitAll());
 
-//        http.authorizeRequests().antMatchers(GET,"/api/v1/**").hasAnyAuthority("ROLE_USER");
-//        http.authorizeRequests().antMatchers(POST,"/api/v1/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER");
-//        http.authorizeRequests().antMatchers("/graphiql/**").permitAll();
-//        http.authorizeRequests().antMatchers("/graphql/**").permitAll();
-//        http.authorizeRequests().antMatchers("/voyager/**").permitAll();
-//        http.authorizeRequests().antMatchers("/playground/**").permitAll();
+        http.authorizeHttpRequests(request -> request.requestMatchers(GET, "/api/v1/**").hasAnyAuthority("ROLE_USER"));
+        http.authorizeHttpRequests(request -> request.requestMatchers(POST, "/api/v1/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER"));
 
-       //fixme
 
-        http.authorizeHttpRequests(req-> req.anyRequest().authenticated());
+        http.authorizeHttpRequests(req -> req.anyRequest().authenticated());
         http.authenticationManager(authenticationManager);
         http.addFilter(customAuthenticationFilter);
         http.addFilterBefore(new CustomAuthorizationFilter(jwtConfig), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    
+
 }

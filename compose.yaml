@@ -12,15 +12,14 @@ services:
       - MYSQL_PASSWORD=password
       - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
       - MARIADB_DATABASE=db
-    healthcheck:
-      test: [ 'CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh' ]
-      interval: 15s
-      timeout: 5s
-      retries: 6
   adminer:
     image: adminer
     ports:
       - 8084:8080
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
 volumes:
   mariadb_data:
     driver: local

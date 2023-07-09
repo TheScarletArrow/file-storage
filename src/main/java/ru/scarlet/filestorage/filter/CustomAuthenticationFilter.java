@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.joda.time.DateTime;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,12 +35,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     private final JwtConfig jwtConfig;
 
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        logger.info(username + " " + password);
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
 
         return authenticationManager.authenticate(token);
@@ -57,31 +59,49 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         User user = (User) authResult.getPrincipal();
         Algorithm algorithm = Algorithm.HMAC256(jwtConfig.getSecretKey().getBytes());
         Date date = new Date();
-        DateTime plusDay1 = new DateTime(date).plusDays(jwtConfig.getTokenExpirationAfterDays());
-        DateTime plusDays30 = new DateTime(date).plusDays(30);
-        String access_token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(plusDay1.toDate())
-                .withIssuer(request.getRequestURL().toString())
-                .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                .sign(algorithm);
-        String refresh_token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(plusDays30.toDate())
-                .withIssuer(request.getRequestURL().toString())
-                .sign(algorithm);
+        if (redisTemplate.opsForValue().get(user.getUsername() + "_ACCESS") == null) {
+            DateTime plusDay1 = new DateTime(date).plusDays(jwtConfig.getAccessTokenExpirationAfterDays());
+            DateTime plusDays30 = new DateTime(date).plusDays(30);
+            String access_token = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(plusDay1.toDate())
+                    .withIssuer(request.getRequestURL().toString())
+                    .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                    .sign(algorithm);
+            String refresh_token = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(plusDays30.toDate())
+                    .withIssuer(request.getRequestURL().toString())
+                    .sign(algorithm);
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("access_token", access_token);
-        tokens.put("refresh_token", refresh_token);
-        response.setContentType(APPLICATION_JSON_VALUE);
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("access_token", access_token);
+            tokens.put("refresh_token", refresh_token);
+            response.setContentType(APPLICATION_JSON_VALUE);
 //        jwtService.save(user.getUsername(), access_token, refresh_token, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList().get(0), plusDay1.toDate());
-        new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+            new ObjectMapper().writeValue(response.getOutputStream(), tokens);
 
 
-        Authentication authenticatedUser = new UsernamePasswordAuthenticationToken(
-                authResult.getPrincipal(), authResult.getCredentials(), authResult.getAuthorities());
+            Authentication authenticatedUser = new UsernamePasswordAuthenticationToken(
+                    authResult.getPrincipal(), authResult.getCredentials(), authResult.getAuthorities());
 
-        SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
+            SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
+
+            redisTemplate.opsForValue().set(user.getUsername() + "_ACCESS", access_token, Duration.ofDays(jwtConfig.getAccessTokenExpirationAfterDays()));
+            redisTemplate.opsForValue().set(user.getUsername() + "_REFRESH", refresh_token, Duration.ofDays(jwtConfig.getRefreshTokenExpirationAfterDays()));
+        } else {
+            String access_token = redisTemplate.opsForValue().get(user.getUsername() + "_ACCESS");
+            String refresh_token = redisTemplate.opsForValue().get(user.getUsername() + "_REFRESH");
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("access_token", access_token);
+            tokens.put("refresh_token", refresh_token);
+            response.setContentType(APPLICATION_JSON_VALUE);
+//        jwtService.save(user.getUsername(), access_token, refresh_token, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList().get(0), plusDay1.toDate());
+            new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+            Authentication authenticatedUser = new UsernamePasswordAuthenticationToken(
+                    authResult.getPrincipal(), authResult.getCredentials(), authResult.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
+        }
     }
 }

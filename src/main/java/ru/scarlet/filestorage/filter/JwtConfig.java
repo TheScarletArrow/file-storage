@@ -13,8 +13,8 @@ import org.springframework.http.HttpHeaders;
 public class JwtConfig {
     private String secretKey;
     private String tokenPrefix;
-    private Integer tokenExpirationAfterDays;
-
+    private Integer accessTokenExpirationAfterDays;
+    private Integer refreshTokenExpirationAfterDays;
 
 
     public String getAuthHeader(){
