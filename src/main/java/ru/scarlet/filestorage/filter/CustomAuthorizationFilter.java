@@ -1,4 +1,4 @@
-package ru.scarlet.filestorage.filter.filter;
+package ru.scarlet.filestorage.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -15,7 +15,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.scarlet.filestorage.filter.JwtConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;

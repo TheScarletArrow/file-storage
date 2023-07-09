@@ -52,7 +52,6 @@ public class UserController {
 
         @GetMapping("/currentUser")
     public ResponseEntity<Object> getCurrent(){
-        System.out.println("1"+SecurityContextHolder.getContext().getAuthentication());
         return ResponseEntity.ok(SecurityContextHolder.getContext().getAuthentication());
     }
 }

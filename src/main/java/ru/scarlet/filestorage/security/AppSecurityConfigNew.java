@@ -19,8 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ru.scarlet.filestorage.filter.JwtConfig;
-import ru.scarlet.filestorage.filter.filter.CustomAuthenticationFilter;
-import ru.scarlet.filestorage.filter.filter.CustomAuthorizationFilter;
+import ru.scarlet.filestorage.filter.CustomAuthenticationFilter;
+import ru.scarlet.filestorage.filter.CustomAuthorizationFilter;
 
 
 
@@ -42,7 +42,7 @@ public class AppSecurityConfigNew {
 
     private final PasswordEncoder bCryptPasswordEncoder;
     private final UserDetailsService userDetailsService;
-    @Qualifier("JwtConfig")
+
     private final JwtConfig jwtConfig;
 
 

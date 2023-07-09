@@ -1,4 +1,4 @@
-package ru.scarlet.filestorage.filter.filter;
+package ru.scarlet.filestorage.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -17,10 +17,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import ru.scarlet.filestorage.filter.JwtConfig;
 
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,14 +33,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     private final JwtConfig jwtConfig;
 
-
-//private final     JWTService jwtService;
-//    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, JwtConfig jwtConfig, UserLoginsRepository userLoginsRepository) {
-//        this.authenticationManager = authenticationManager;
-//        this.jwtConfig = jwtConfig;
-////        this.jwtService=jwtService;
-//        this.userLoginsRepository = userLoginsRepository;
-//    }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
