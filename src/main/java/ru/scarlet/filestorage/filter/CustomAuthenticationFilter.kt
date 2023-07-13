@@ -1,107 +1,124 @@
-package ru.scarlet.filestorage.filter;
+package ru.scarlet.filestorage.filter
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import org.joda.time.DateTime;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.servlet.FilterChain
+import jakarta.servlet.ServletException
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import lombok.AllArgsConstructor
+import org.joda.time.DateTime
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.http.MediaType
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import java.io.IOException
+import java.time.Duration
+import java.util.*
+import java.util.stream.*
 
 @AllArgsConstructor
+class CustomAuthenticationFilter(
+    private val authenticationManager: AuthenticationManager? = null,
+    private val jwtConfig: JwtConfig? = null,
+    private val redisTemplate: RedisTemplate<String, String?>? = null
+) : UsernamePasswordAuthenticationFilter() {
 
-public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private final AuthenticationManager authenticationManager;
-
-    private final JwtConfig jwtConfig;
-
-    private final RedisTemplate<String, String> redisTemplate;
-
-    @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
-
-        return authenticationManager.authenticate(token);
+    @Throws(AuthenticationException::class)
+    override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
+        val username = request.getParameter("username")
+        val password = request.getParameter("password")
+        val token = UsernamePasswordAuthenticationToken(username, password)
+        return authenticationManager!!.authenticate(token)
     }
 
-    @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        logger.error("Authentication failed: " + failed.getMessage());
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        super.unsuccessfulAuthentication(request, response, failed);
-
+    @Throws(IOException::class, ServletException::class)
+    override fun unsuccessfulAuthentication(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        failed: AuthenticationException
+    ) {
+        logger.error("Authentication failed: " + failed.message)
+        response.status = HttpServletResponse.SC_UNAUTHORIZED
+        super.unsuccessfulAuthentication(request, response, failed)
     }
 
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        User user = (User) authResult.getPrincipal();
-        Algorithm algorithm = Algorithm.HMAC256(jwtConfig.getSecretKey().getBytes());
-        Date date = new Date();
-        if (redisTemplate.opsForValue().get(user.getUsername() + "_ACCESS") == null) {
-            DateTime plusDay1 = new DateTime(date).plusDays(jwtConfig.getAccessTokenExpirationAfterDays());
-            DateTime plusDays30 = new DateTime(date).plusDays(30);
-            String access_token = JWT.create()
-                    .withSubject(user.getUsername())
-                    .withExpiresAt(plusDay1.toDate())
-                    .withIssuer(request.getRequestURL().toString())
-                    .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                    .sign(algorithm);
-            String refresh_token = JWT.create()
-                    .withSubject(user.getUsername())
-                    .withExpiresAt(plusDays30.toDate())
-                    .withIssuer(request.getRequestURL().toString())
-                    .sign(algorithm);
+    @Throws(IOException::class, ServletException::class)
+    override fun successfulAuthentication(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+        authResult: Authentication
+    ) {
+        val user = authResult.principal as User
+        val algorithm = Algorithm.HMAC256(jwtConfig!!.secretKey.toByteArray())
+        val date = Date()
+        if (redisTemplate!!.opsForValue()[user.username + "_ACCESS"] == null) {
+            val plusDay1 = DateTime(date).plusDays(jwtConfig.accessTokenExpirationAfterDays!!.toInt())
+            val plusDays30 = DateTime(date).plusDays(30)
+            val accessToken = JWT.create()
+                .withSubject(user.username)
+                .withExpiresAt(plusDay1.toDate())
+                .withIssuer(request.requestURL.toString())
+                .withClaim("roles", user.authorities.stream().map { obj: GrantedAuthority -> obj.authority }
+                    .collect(Collectors.toList()))
+                .sign(algorithm)
+            val refreshToken = JWT.create()
+                .withSubject(user.username)
+                .withExpiresAt(plusDays30.toDate())
+                .withIssuer(request.requestURL.toString())
+                .sign(algorithm)
+            val tokens: MutableMap<String, String> = HashMap()
+            tokens["access_token"] = accessToken
+            tokens["refresh_token"] = refreshToken
+            response.contentType = MediaType.APPLICATION_JSON_VALUE
+            //        jwtService.save(user.getUsername(), access_token, refresh_token, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList().get(0), plusDay1.toDate());
+            ObjectMapper().writeValue(response.outputStream, tokens)
+            val authenticatedUser: Authentication = UsernamePasswordAuthenticationToken(
+                authResult.principal, authResult.credentials, authResult.authorities
+            )
+            SecurityContextHolder.getContext().authentication = authenticatedUser
+            redisTemplate.opsForValue()[user.username + "_ACCESS", accessToken] =
+                Duration.ofDays(jwtConfig.accessTokenExpirationAfterDays!!)
+            redisTemplate.opsForValue()[user.username + "_REFRESH", refreshToken] =
+                Duration.ofDays(jwtConfig.accessTokenExpirationAfterDays!!)
 
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("access_token", access_token);
-            tokens.put("refresh_token", refresh_token);
-            response.setContentType(APPLICATION_JSON_VALUE);
-//        jwtService.save(user.getUsername(), access_token, refresh_token, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList().get(0), plusDay1.toDate());
-            new ObjectMapper().writeValue(response.getOutputStream(), tokens);
-
-
-            Authentication authenticatedUser = new UsernamePasswordAuthenticationToken(
-                    authResult.getPrincipal(), authResult.getCredentials(), authResult.getAuthorities());
-
-            SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
-
-            redisTemplate.opsForValue().set(user.getUsername() + "_ACCESS", access_token, Duration.ofDays(jwtConfig.getAccessTokenExpirationAfterDays()));
-            redisTemplate.opsForValue().set(user.getUsername() + "_REFRESH", refresh_token, Duration.ofDays(jwtConfig.getRefreshTokenExpirationAfterDays()));
         } else {
-            String access_token = redisTemplate.opsForValue().get(user.getUsername() + "_ACCESS");
-            String refresh_token = redisTemplate.opsForValue().get(user.getUsername() + "_REFRESH");
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("access_token", access_token);
-            tokens.put("refresh_token", refresh_token);
-            response.setContentType(APPLICATION_JSON_VALUE);
-//        jwtService.save(user.getUsername(), access_token, refresh_token, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList().get(0), plusDay1.toDate());
-            new ObjectMapper().writeValue(response.getOutputStream(), tokens);
-            Authentication authenticatedUser = new UsernamePasswordAuthenticationToken(
-                    authResult.getPrincipal(), authResult.getCredentials(), authResult.getAuthorities());
-
-            SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
+            val plusDay1 = DateTime(date).plusDays(jwtConfig.accessTokenExpirationAfterDays!!.toInt())
+            val plusDays30 = DateTime(date).plusDays(30)
+            val accessTokenFromRedis = redisTemplate.opsForValue()[user.username + "_ACCESS"]
+            val accessToken = accessTokenFromRedis
+                ?: JWT.create()
+                    .withSubject(user.username)
+                    .withExpiresAt(plusDay1.toDate())
+                    .withIssuer(request.requestURL.toString())
+                    .withClaim("roles", user.authorities.stream().map { obj: GrantedAuthority -> obj.authority }
+                        .collect(Collectors.toList()))
+                    .sign(algorithm)
+            val refreshTokenFromRedis = redisTemplate.opsForValue()[user.username + "_REFRESH"]
+            val refreshToken = refreshTokenFromRedis
+                ?: JWT.create()
+                    .withSubject(user.username)
+                    .withExpiresAt(plusDays30.toDate())
+                    .withIssuer(request.requestURL.toString())
+                    .sign(algorithm)
+            val tokens: MutableMap<String, String> = HashMap()
+            tokens["access_token"] = accessToken
+            tokens["refresh_token"] = refreshToken
+            response.contentType = MediaType.APPLICATION_JSON_VALUE
+            //        jwtService.save(user.getUsername(), access_token, refresh_token, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList().get(0), plusDay1.toDate());
+            ObjectMapper().writeValue(response.outputStream, tokens)
+            val authenticatedUser: Authentication = UsernamePasswordAuthenticationToken(
+                authResult.principal, authResult.credentials, authResult.authorities
+            )
+            SecurityContextHolder.getContext().authentication = authenticatedUser
         }
     }
 }
