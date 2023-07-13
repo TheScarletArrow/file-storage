@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import ru.scarlet.filestorage.filter.JwtConfig;
 import ru.scarlet.filestorage.filter.CustomAuthenticationFilter;
 import ru.scarlet.filestorage.filter.CustomAuthorizationFilter;
+import ru.scarlet.filestorage.repository.LoginAttemptRepository;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -45,7 +46,7 @@ public class AppSecurityConfigNew {
 
     private final PasswordEncoder bCryptPasswordEncoder;
     private final UserDetailsService userDetailsService;
-
+        private final LoginAttemptRepository loginAttemptRepository;
     private final JwtConfig jwtConfig;
 
     private final RedisTemplate<String, String> redisTemplate;
@@ -59,7 +60,7 @@ public class AppSecurityConfigNew {
         builder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
         var authenticationManager = builder.build();
 
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager, jwtConfig, redisTemplate);
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager, jwtConfig, redisTemplate, loginAttemptRepository);
 
         http.csrf(AbstractHttpConfigurer::disable);
 

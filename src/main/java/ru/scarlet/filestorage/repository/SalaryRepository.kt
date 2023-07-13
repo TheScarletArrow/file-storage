@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository
 import ru.scarlet.filestorage.entity.Salary
 import java.util.*
 
-@Repository
 interface SalaryRepository : JpaRepository<Salary, UUID> {
 
 

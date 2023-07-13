@@ -19,8 +19,11 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import ru.scarlet.filestorage.entity.LoginAttempt
+import ru.scarlet.filestorage.repository.LoginAttemptRepository
 import java.io.IOException
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.*
 
@@ -28,7 +31,8 @@ import java.util.stream.*
 class CustomAuthenticationFilter(
     private val authenticationManager: AuthenticationManager? = null,
     private val jwtConfig: JwtConfig? = null,
-    private val redisTemplate: RedisTemplate<String, String?>? = null
+    private val redisTemplate: RedisTemplate<String, String?>? = null,
+    private val loginAttemptRepository: LoginAttemptRepository
 ) : UsernamePasswordAuthenticationFilter() {
 
     @Throws(AuthenticationException::class)
@@ -36,6 +40,7 @@ class CustomAuthenticationFilter(
         val username = request.getParameter("username")
         val password = request.getParameter("password")
         val token = UsernamePasswordAuthenticationToken(username, password)
+        loginAttemptRepository.save(LoginAttempt(userName=username, dateTime = LocalDateTime.now(), ip = request.remoteAddr))
         return authenticationManager!!.authenticate(token)
     }
 
