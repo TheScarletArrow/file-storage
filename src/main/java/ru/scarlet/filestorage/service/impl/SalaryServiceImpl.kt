@@ -85,7 +85,7 @@ open class SalaryServiceImpl(val salaryRepository: SalaryRepository) : SalarySer
                     .getRow(index + 1)
                     .createCell(1)
                 second.setCellValue(it.amount.toDouble())
-                doubles.setDataFormat(dataFormat.getFormat("# ##0.00"))
+                doubles.dataFormat = dataFormat.getFormat("# ##0.00")
                 second.cellStyle=doubles
 
                 val companyName = workSheet
