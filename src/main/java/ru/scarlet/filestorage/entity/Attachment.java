@@ -35,6 +35,8 @@ public class Attachment {
     String author;
     Boolean isInfiniteDownloads;
     Integer downloadsLeft = 10;
+
+    String hash;
     public Attachment(String filename, String fileType, byte[] data, Integer attachmentTypeCode, Boolean isInfiniteDownloads, String author) {
         this.filename = filename;
         this.fileType = fileType;

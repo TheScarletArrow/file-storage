@@ -13,6 +13,7 @@ import ru.scarlet.filestorage.filter.JwtConfig;
 import ru.scarlet.filestorage.repository.AttachmentRepository;
 import ru.scarlet.filestorage.security.Helper;
 import ru.scarlet.filestorage.service.AttachmentService;
+import ru.scarlet.filestorage.utils.HashUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             Attachment attachment = new Attachment(filename, file.getContentType(), file.getBytes(), attachmentType.getCode(),
                     isInfiniteDownloads,
                     author);
+            attachment.setHash(HashUtils.Companion.createHash(file.getBytes()));
             return attachmentRepository.save(attachment);
         } catch (IOException e) {
             throw new RuntimeException();
@@ -45,6 +47,8 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     public Attachment getAttachement(String uuid) {
         var attachment = attachmentRepository.findById(UUID.fromString(uuid)).orElseThrow(() -> new RuntimeException("NOT FOUND"));
+        if (!attachment.getHash().equalsIgnoreCase(HashUtils.Companion.createHash(attachment.getData())))
+            throw new RuntimeException(" ERROR!!!!");
         if (attachment.getDownloadsLeft() == 0) throw new NoDownloadsLeftException();
         if (!attachment.getIsInfiniteDownloads())
             attachment.setDownloadsLeft(attachment.getDownloadsLeft() - 1);
