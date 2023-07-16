@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public void addRoleToUser(String username, String roleUser) {
-        User user = userRepository.findByLogin(username).orElseThrow(()->new RuntimeException());
+        User user = userRepository.findByLogin(username).orElseThrow(()->new UsernameNotFoundException("User not found"));
         Role role = roleRepository.findByName(roleUser);
         user.getRoles().add(role);
     }

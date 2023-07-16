@@ -5,10 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import ru.scarlet.filestorage.AttachmentType;
+import ru.scarlet.filestorage.enums.AttachmentType;
 import ru.scarlet.filestorage.dto.AllAttachments;
 import ru.scarlet.filestorage.entity.Attachment;
+import ru.scarlet.filestorage.exception.AttachmentNotFoundException;
+import ru.scarlet.filestorage.exception.HashDifferException;
 import ru.scarlet.filestorage.exception.NoDownloadsLeftException;
+import ru.scarlet.filestorage.exception.SomethingWentWrongException;
 import ru.scarlet.filestorage.filter.JwtConfig;
 import ru.scarlet.filestorage.repository.AttachmentRepository;
 import ru.scarlet.filestorage.security.Helper;
@@ -40,15 +43,15 @@ public class AttachmentServiceImpl implements AttachmentService {
             attachment.setHash(HashUtils.Companion.createHash(file.getBytes()));
             return attachmentRepository.save(attachment);
         } catch (IOException e) {
-            throw new RuntimeException();
+            throw new SomethingWentWrongException();
         }
     }
 
     @Override
     public Attachment getAttachement(String uuid) {
-        var attachment = attachmentRepository.findById(UUID.fromString(uuid)).orElseThrow(() -> new RuntimeException("NOT FOUND"));
+        var attachment = attachmentRepository.findById(UUID.fromString(uuid)).orElseThrow(() -> new AttachmentNotFoundException("NOT FOUND"));
         if (!attachment.getHash().equalsIgnoreCase(HashUtils.Companion.createHash(attachment.getData())))
-            throw new RuntimeException(" ERROR!!!!");
+            throw new HashDifferException(" ERROR!!!!");
         if (attachment.getDownloadsLeft() == 0) throw new NoDownloadsLeftException();
         if (!attachment.getIsInfiniteDownloads())
             attachment.setDownloadsLeft(attachment.getDownloadsLeft() - 1);

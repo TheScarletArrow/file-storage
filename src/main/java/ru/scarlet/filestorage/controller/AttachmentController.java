@@ -12,11 +12,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ru.scarlet.filestorage.AttachmentType;
+import ru.scarlet.filestorage.enums.AttachmentType;
 import ru.scarlet.filestorage.dto.AllAttachments;
 import ru.scarlet.filestorage.dto.ResponseData;
 import ru.scarlet.filestorage.entity.Attachment;
-import ru.scarlet.filestorage.filter.JwtConfig;
 import ru.scarlet.filestorage.service.AttachmentService;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package ru.scarlet.filestorage.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
-import ru.scarlet.filestorage.AttachmentType;
+import ru.scarlet.filestorage.enums.AttachmentType;
 import ru.scarlet.filestorage.dto.AllAttachments;
 import ru.scarlet.filestorage.entity.Attachment;
 

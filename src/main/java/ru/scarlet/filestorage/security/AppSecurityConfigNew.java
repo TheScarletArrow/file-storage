@@ -29,7 +29,6 @@ import static org.springframework.http.HttpMethod.POST;
 
 
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
 @AllArgsConstructor
 public class AppSecurityConfigNew {
