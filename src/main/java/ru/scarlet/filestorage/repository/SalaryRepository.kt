@@ -8,5 +8,5 @@ import java.util.*
 interface SalaryRepository : JpaRepository<Salary, UUID> {
 
 
-    fun findByUserNameOrderByDateDesc(userName: String): List<Salary>
+    fun findByUserNameOrderByDateAsc(userName: String): List<Salary>
 }

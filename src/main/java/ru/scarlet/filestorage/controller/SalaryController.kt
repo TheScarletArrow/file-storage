@@ -41,7 +41,7 @@ open class SalaryController(private val salaryService: SalaryService) {
     @PostMapping("/excel")
     fun salaryToExcel(httpServletRequest: HttpServletRequest) : ResponseEntity<ByteArray> {
         val report = salaryService.writeToExcel(httpServletRequest)
-        val fileName = "report.xls"
+        val fileName = "report.xlsx"
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$fileName\"")
             .body(report)

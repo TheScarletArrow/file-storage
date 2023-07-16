@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 @Data
 
-data class SalaryIn(val date: LocalDate, val amount: BigDecimal){
+data class SalaryIn(val date: LocalDate, val amount: BigDecimal, val companyName: String){
 
 
 }

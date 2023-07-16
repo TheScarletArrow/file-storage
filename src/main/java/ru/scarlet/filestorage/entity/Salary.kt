@@ -34,6 +34,7 @@ class Salary {
 
     var amount: BigDecimal = BigDecimal.ZERO
 
+    var companyName : String? = null
 }
 
 
