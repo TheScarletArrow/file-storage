@@ -7,6 +7,7 @@ import ru.scarlet.filestorage.dto.AllAttachments;
 import ru.scarlet.filestorage.entity.Attachment;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface AttachmentService {
     Attachment saveAttachmenet(MultipartFile file, AttachmentType attachmentType, Boolean isInfiniteDownloads, HttpServletRequest request);
@@ -14,4 +15,6 @@ public interface AttachmentService {
     Attachment getAttachement(String uuid);
 
     List<AllAttachments> getByAuthor(String authorFromToken);
+
+    void saveAttachmentPackage(UUID uuid, HttpServletRequest request, UUID packageUUID);
 }
