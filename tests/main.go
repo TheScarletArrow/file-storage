@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"net/url"
-	"strings"
 )
 
 type Tokens struct {
@@ -14,20 +14,24 @@ type Tokens struct {
 }
 
 func sendHttpPost(login string, password string) *Tokens {
-	// The URL to send the request to
-	myUrl := "http://localhost:8080/login"
+	myUrl := "http://localhost:8080/signin"
 
-	// The data to be sent as x-www-form-urlencoded fields
-	data := url.Values{}
-	data.Set("username", login)
-	data.Set("password", password)
+	user := UserSignIn{
+		Username: login,
+		Password: password,
+	}
 
 	// Create a new HTTP client
 	client := &http.Client{}
 
 	// Send the POST request
-	response, err := client.Post(myUrl, "application/x-www-form-urlencoded",
-		strings.NewReader(data.Encode()))
+	marshal, err2 := json.Marshal(user)
+	if err2 != nil {
+		fmt.Println("Error marshaling JSON:", err2)
+		return nil
+	}
+	response, err := client.Post(myUrl, "application/json",
+		bytes.NewBuffer(marshal))
 	if err != nil {
 		fmt.Println("Error sending POST request:", err)
 		//t.Error("Error sending POST request", err)
@@ -44,4 +48,31 @@ func sendHttpPost(login string, password string) *Tokens {
 
 	// Print the response
 	return &tokens
+}
+func sendSignUp(signUp UserSignUp) interface{} {
+	myUrl := "http://localhost:8080/users/"
+
+	client := &http.Client{}
+
+	marshal, err2 := json.Marshal(signUp)
+	if err2 != nil {
+		fmt.Println("Error marshaling JSON:", err2)
+		return nil
+	}
+	response, err := client.Post(myUrl, "application/json",
+		bytes.NewBuffer(marshal))
+	if err != nil {
+		fmt.Println("Error sending POST request:", err)
+		//t.Error("Error sending POST request", err)
+	}
+
+	defer response.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+
+	var jsonData interface{}
+	err3 := json.Unmarshal(bodyBytes, &jsonData)
+	if err3 != nil {
+		return nil
+	}
+	return jsonData
 }

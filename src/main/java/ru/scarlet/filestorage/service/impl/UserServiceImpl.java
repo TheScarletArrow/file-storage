@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public User saveUser(UserDto userDto) {
         Optional<User> byLogin = userRepository.findByLogin(userDto.getLogin());
         if (byLogin.isPresent())
-                throw new UserAlreadyExistsException(String.format("User %s already exists ", userDto.getLogin()));
+                throw new UserAlreadyExistsException(String.format("User %s already exists", userDto.getLogin()));
         User user = new User(userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getName(), userDto.getLastName(), userDto.getPatronymic());
         return userRepository.save(user);
 
