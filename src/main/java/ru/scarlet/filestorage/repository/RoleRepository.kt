@@ -1,10 +1,8 @@
-package ru.scarlet.filestorage.repository;
+package ru.scarlet.filestorage.repository
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import ru.scarlet.filestorage.entity.Role;
+import org.springframework.data.jpa.repository.JpaRepository
+import ru.scarlet.filestorage.entity.Role
 
-public interface RoleRepository extends JpaRepository<Role, Long> {
-    Role findByName(String name);
-
+interface RoleRepository : JpaRepository<Role?, Long?> {
+    fun findByName(name: String?): Role?
 }
-
