@@ -1,17 +1,16 @@
-package ru.scarlet.filestorage.dto;
+package ru.scarlet.filestorage.dto
 
-import lombok.Value;
-
-import java.io.Serializable;
+import lombok.Value
+import java.io.Serializable
 
 /**
- * DTO for {@link ru.scarlet.filestorage.entity.User}
+ * DTO for [ru.scarlet.filestorage.entity.User]
  */
 @Value
-public class UserDto implements Serializable {
-    String login;
-    String password;
-    String name;
-    String lastName;
-    String patronymic;
-}
+data class UserDto  (
+    var login: String? = null,
+    var password: String? = null,
+    var name: String? = null,
+    var lastName: String? = null,
+    var patronymic: String? = null
+) : Serializable
