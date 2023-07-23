@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.scarlet.filestorage.entity.AttachmentPackage;
 import ru.scarlet.filestorage.enums.AttachmentType;
 import ru.scarlet.filestorage.dto.AllAttachments;
@@ -22,7 +21,6 @@ import ru.scarlet.filestorage.service.AttachmentService;
 import ru.scarlet.filestorage.utils.HashUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +36,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     private final AttachmentPackageRepository attachmentPackageRepository;
 
     @Override
-    public Attachment saveAttachmenet(MultipartFile file, AttachmentType attachmentType, Boolean isInfiniteDownloads, HttpServletRequest request) {
+    public Attachment saveAttachmenet(MultipartFile file, AttachmentType attachmentType, Boolean isInfiniteDownloads, HttpServletRequest request, Integer downloads) {
         try {
             String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
             String author = new Helper(jwtConfig).getUsernameFromToken(request.getHeader(AUTHORIZATION).replace(jwtConfig.getTokenPrefix(), ""));
@@ -46,6 +44,8 @@ public class AttachmentServiceImpl implements AttachmentService {
             Attachment attachment = new Attachment(filename, file.getContentType(), file.getBytes(), attachmentType.getCode(),
                     isInfiniteDownloads,
                     author);
+            if (!isInfiniteDownloads)
+                attachment.setDownloadsLeft(downloads);
             attachment.setHash(HashUtils.Companion.createHash(file.getBytes()));
             return attachmentRepository.save(attachment);
         } catch (IOException e) {

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AttachmentService {
-    Attachment saveAttachmenet(MultipartFile file, AttachmentType attachmentType, Boolean isInfiniteDownloads, HttpServletRequest request);
+    Attachment saveAttachmenet(MultipartFile file, AttachmentType attachmentType, Boolean isInfiniteDownloads, HttpServletRequest request, Integer downloads);
 
     Attachment getAttachement(String uuid);
 

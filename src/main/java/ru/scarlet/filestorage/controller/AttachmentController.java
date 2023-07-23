@@ -12,21 +12,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ru.scarlet.filestorage.dto.AttachmentUploadResponse;
-import ru.scarlet.filestorage.enums.AttachmentType;
 import ru.scarlet.filestorage.dto.AllAttachments;
+import ru.scarlet.filestorage.dto.AttachmentUploadResponse;
 import ru.scarlet.filestorage.dto.ResponseData;
 import ru.scarlet.filestorage.entity.Attachment;
+import ru.scarlet.filestorage.enums.AttachmentType;
 import ru.scarlet.filestorage.service.AttachmentService;
 
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import static org.apache.commons.compress.utils.CharsetNames.UTF_8;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,11 +30,16 @@ public class AttachmentController {
     private final AttachmentService attachmentService;
 
     @PostMapping("/upload")
-    public ResponseEntity<AttachmentUploadResponse> uploadFile(@RequestParam("file") List<MultipartFile> files, @RequestParam AttachmentType attachmentType, @RequestParam Boolean isInfiniteDownloads, HttpServletRequest request) {
+    public ResponseEntity<AttachmentUploadResponse> uploadFile(@RequestParam("file") List<MultipartFile> files,
+                                                               @RequestParam AttachmentType attachmentType,
+                                                               @RequestParam Boolean isInfiniteDownloads,
+                                                               HttpServletRequest request,
+                                                               @RequestParam Integer downloads
+    ) {
         List<ResponseData> responseData = new ArrayList<>();
         UUID packageUUID = UUID.randomUUID();
         for (MultipartFile file: files) {
-            Attachment attachment = attachmentService.saveAttachmenet(file, attachmentType, isInfiniteDownloads, request);
+            Attachment attachment = attachmentService.saveAttachmenet(file, attachmentType, isInfiniteDownloads, request, downloads);
             attachmentService.saveAttachmentPackage(attachment.getUuid(), request, packageUUID);
             String downloadURL = ServletUriComponentsBuilder.fromCurrentContextPath().path("/attachments/download/").path(attachment.getUuid().toString()).toUriString();
             responseData.add(new ResponseData(attachment.getFilename(), downloadURL, file.getContentType(), file.getSize()));
