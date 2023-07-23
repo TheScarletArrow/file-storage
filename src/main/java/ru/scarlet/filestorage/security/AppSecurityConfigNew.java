@@ -66,8 +66,10 @@ public class AppSecurityConfigNew {
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
         http.authorizeHttpRequests(request -> request.requestMatchers(("/login/**")).permitAll());
+        http.authorizeHttpRequests(request -> request.requestMatchers(("/signin/**")).permitAll());
+
         http.authorizeHttpRequests(request -> request.requestMatchers(("/api/token/refresh")).permitAll());
-        http.authorizeHttpRequests(request -> request.requestMatchers("/users/").permitAll());
+        http.authorizeHttpRequests(request -> request.requestMatchers("/users/**").permitAll());
         http.authorizeHttpRequests(request -> request.requestMatchers("/users/void1/").permitAll());
 
         http.authorizeHttpRequests(request -> request.requestMatchers(GET, "/api/v1/**").hasAnyAuthority("ROLE_USER"));

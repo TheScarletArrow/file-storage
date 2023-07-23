@@ -5,9 +5,11 @@ import org.springframework.stereotype.Service
 
 @Service
 class JwtUtils {
-    private val redisTemplate: RedisTemplate<String, String>? = null
 
-    fun getAccessTokenForUser(): Unit {
-        
+    companion object {
+        private val redisTemplate: RedisTemplate<String, String>? = null
+        fun getAccessTokenForUser(user: String): String? {
+            return redisTemplate?.opsForValue()?.get(user + "_ACCESS")
+        }
     }
 }

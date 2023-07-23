@@ -28,7 +28,8 @@ class CustomAuthorizationFilter(private val jwtConfig: JwtConfig) : OncePerReque
            "/login",
            "/api/token/refresh",
            "/users/void1/",
-           "/test**"
+           "/test**",
+           "/signin"
        )
    }
 

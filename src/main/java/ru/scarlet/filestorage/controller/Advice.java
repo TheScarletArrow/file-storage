@@ -44,4 +44,10 @@ public class Advice {
         ResponseMessage responseMessage = new ResponseMessage("File corrupted", ((ServletWebRequest) webRequest).getRequest().getRequestURI(), 400, LocalDateTime.now());
         return  new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ResponseMessage> handlePasswordMismatch(HttpServletRequest request, WebRequest webRequest){
+        ResponseMessage responseMessage = new ResponseMessage("PASSWORDS MISMATCH", ((ServletWebRequest) webRequest).getRequest().getRequestURI(), 400, LocalDateTime.now());
+        return  new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
+    }
 }
