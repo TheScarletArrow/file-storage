@@ -1,19 +1,16 @@
-package ru.scarlet.filestorage.dto;
+package ru.scarlet.filestorage.dto
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor
+import lombok.Data
+import lombok.NoArgsConstructor
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseData {
+data class ResponseData (
+    val filename: String? = null,
+    val downloadURL: String? = null,
+    val fileType: String? = null,
+    val size: Long? = null,
 
-    private String filename;
-
-    private String downloadURL;
-
-    private String fileType;
-
-    private Long size;
-}
+)
