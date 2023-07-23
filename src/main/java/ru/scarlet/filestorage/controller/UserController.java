@@ -21,8 +21,8 @@ public class UserController {
 
     @PostMapping("/")
     public ResponseEntity<?> addUser(@RequestBody UserDto userDto) {
-        userService.saveUser(userDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(null);
+        User user = userService.saveUser(userDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
     @GetMapping("/void1/")
     public void voidMethod() {

@@ -6,7 +6,7 @@ import ru.scarlet.filestorage.entity.User;
 
 public interface UserService {
 
-    public void saveUser(UserDto userDto);
+    public User saveUser(UserDto userDto);
 
     void saveUser(User user);
 

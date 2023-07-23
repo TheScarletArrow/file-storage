@@ -50,4 +50,10 @@ public class Advice {
         ResponseMessage responseMessage = new ResponseMessage("PASSWORDS MISMATCH", ((ServletWebRequest) webRequest).getRequest().getRequestURI(), 400, LocalDateTime.now());
         return  new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ResponseMessage> handleUserAlreadyExists(HttpServletRequest request, WebRequest webRequest, UserAlreadyExistsException ex){
+        ResponseMessage responseMessage = new ResponseMessage(ex.getMessage(), ((ServletWebRequest) webRequest).getRequest().getRequestURI(), 400, LocalDateTime.now());
+        return  new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+    }
 }

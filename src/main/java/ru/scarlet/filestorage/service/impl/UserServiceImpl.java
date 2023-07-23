@@ -13,12 +13,15 @@ import org.springframework.stereotype.Service;
 import ru.scarlet.filestorage.dto.UserDto;
 import ru.scarlet.filestorage.entity.Role;
 import ru.scarlet.filestorage.entity.User;
+import ru.scarlet.filestorage.exception.UserAlreadyExistsException;
 import ru.scarlet.filestorage.repository.RoleRepository;
 import ru.scarlet.filestorage.repository.UserRepository;
 import ru.scarlet.filestorage.service.UserService;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +31,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final RoleRepository roleRepository;
 
     @Override
-    public void saveUser(UserDto userDto) {
+    public User saveUser(UserDto userDto) {
+        Optional<User> byLogin = userRepository.findByLogin(userDto.getLogin());
+        if (byLogin.isPresent())
+                throw new UserAlreadyExistsException(String.format("User %s already exists ", userDto.getLogin()));
         User user = new User(userDto.getLogin(), passwordEncoder.encode(userDto.getPassword()), userDto.getName(), userDto.getLastName(), userDto.getPatronymic());
-        userRepository.save(user);
+        return userRepository.save(user);
 
     }
 
